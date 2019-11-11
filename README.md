@@ -1,6 +1,10 @@
 XmlRpcCore
 ========
 
+[![Build status](https://ci.appveyor.com/api/projects/status/1mw8qwd83q1u7l5d?svg=true)](https://ci.appveyor.com/project/cinderblocks57647/xmlrpccore)  
+[![XmlRpcCore NuGet-Release](https://img.shields.io/nuget/v/xmlrpccore.svg?label=XmlRpcCore)](https://www.nuget.org/packages/XmlRpcCore/)  
+[![NuGet Downloads](https://img.shields.io/nuget/dt/XmlRpcCore?label=NuGet%20downloads)](https://www.nuget.org/packages/XmlRpcCore/)  
+
 ## Introduction
 
 This package provides a simple XML-RPC client and server for C# applications.
