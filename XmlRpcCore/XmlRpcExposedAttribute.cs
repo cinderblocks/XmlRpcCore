@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>
     ///     Simple tagging attribute to indicate participation is XML-RPC exposure.

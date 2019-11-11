@@ -1,4 +1,4 @@
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Define levels of logging.</summary>
     /// <remarks>

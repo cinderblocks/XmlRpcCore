@@ -4,7 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Xml;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Parser context, we maintain contexts in a stack to avoiding recursion. </summary>
     internal struct Context

@@ -1,4 +1,4 @@
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Class collecting <c>String</c> tokens that are part of XML-RPC files.</summary>
     public class XmlRpcXmlTokens
@@ -50,7 +50,7 @@ namespace Nwc.XmlRpc
         /// <remarks>Corresponds to the &lt;member&gt; tag.</remarks>
         public const string MEMBER = "member";
 
-        /// <summary>Stuct field indicator.</summary>
+        /// <summary>Struct field indicator.</summary>
         /// <remarks>Corresponds to the &lt;struct&gt; tag.</remarks>
         public const string STRUCT = "struct";
 

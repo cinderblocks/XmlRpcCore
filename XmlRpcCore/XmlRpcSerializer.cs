@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Xml;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Base class of classes serializing data to XML-RPC's XML format.</summary>
     /// <remarks>This class handles the basic type conversions like Integer to &lt;i4&gt;. </remarks>

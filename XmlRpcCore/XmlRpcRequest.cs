@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Xml;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Class supporting the request side of an XML-RPC transaction.</summary>
     public class XmlRpcRequest

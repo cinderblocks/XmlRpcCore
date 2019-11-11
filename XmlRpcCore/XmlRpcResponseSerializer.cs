@@ -1,6 +1,6 @@
 using System.Xml;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Class responsible for serializing an XML-RPC response.</summary>
     /// <remarks>

@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary> XML-RPC System object implementation of extended specifications.</summary>
     [XmlRpcExposed]

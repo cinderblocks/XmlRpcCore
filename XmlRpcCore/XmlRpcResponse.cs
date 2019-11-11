@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Class designed to represent an XML-RPC response.</summary>
     public class XmlRpcResponse

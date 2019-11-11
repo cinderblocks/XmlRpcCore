@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Xml;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Class to deserialize XML data representing a request.</summary>
     public class XmlRpcRequestDeserializer : XmlRpcDeserializer

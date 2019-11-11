@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Net.Sockets;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Very basic HTTP request handler.</summary>
     /// <remarks>
@@ -44,7 +44,7 @@ namespace Nwc.XmlRpc
 
         private string _filePath
         {
-            get { return __filePath; }
+            get => __filePath;
             set
             {
                 __filePath = value;
@@ -60,10 +60,7 @@ namespace Nwc.XmlRpc
         public string Protocol { get; private set; }
 
         /// <summary>The "path" which is part of any HTTP request.</summary>
-        public string FilePath
-        {
-            get { return _filePath; }
-        }
+        public string FilePath => _filePath;
 
         /// <summary>The file portion of the "path" which is part of any HTTP request.</summary>
         public string FilePathFile
@@ -109,9 +106,9 @@ namespace Nwc.XmlRpc
             if (req == null)
                 throw new ApplicationException("Void request.");
 
-            if (0 == String.Compare("GET ", req.Substring(0, 4), StringComparison.Ordinal))
+            if (0 == string.Compare("GET ", req.Substring(0, 4), StringComparison.Ordinal))
                 HttpMethod = "GET";
-            else if (0 == String.Compare("POST ", req.Substring(0, 5), StringComparison.Ordinal))
+            else if (0 == string.Compare("POST ", req.Substring(0, 5), StringComparison.Ordinal))
                 HttpMethod = "POST";
             else
                 throw new InvalidOperationException("Unrecognized method in query: " + req);

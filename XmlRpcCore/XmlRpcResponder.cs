@@ -2,7 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Xml;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>The class is a container of the context of an XML-RPC dialog on the server side.</summary>
     /// <remarks>

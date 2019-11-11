@@ -1,4 +1,4 @@
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Standard XML-RPC error codes.</summary>
     public class XmlRpcErrorCodes

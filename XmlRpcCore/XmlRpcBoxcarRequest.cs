@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>Class that collects individual <c>XmlRpcRequest</c> objects and submits them as a <i>boxcarred</i> request.</summary>
     /// <remarks>

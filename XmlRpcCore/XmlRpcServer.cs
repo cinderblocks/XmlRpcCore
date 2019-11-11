@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>A restricted HTTP server for use with XML-RPC.</summary>
     /// <remarks>

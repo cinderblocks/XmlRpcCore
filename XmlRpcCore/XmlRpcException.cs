@@ -1,6 +1,6 @@
 using System;
 
-namespace Nwc.XmlRpc
+namespace XmlRpcCore
 {
     /// <summary>An XML-RPC Exception.</summary>
     /// <remarks>
