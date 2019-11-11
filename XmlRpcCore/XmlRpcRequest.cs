@@ -91,13 +91,12 @@ namespace XmlRpcCore
         /// <param name="url"><c>String</c> The url of the XML-RPC server.</param>
         /// <param name="timeout">AMount of time in milliseconds to wait for timeout</param>
         /// <returns><c>XmlRpcResponse</c> The response generated.</returns>
-        public XmlRpcResponse Send(string url, int timeout = 0, WebProxy proxy = null)
+        public XmlRpcResponse Send(string url, int timeout = 0)
         {
             var request = (HttpWebRequest) WebRequest.Create(url);
             if (request == null)
                 throw new XmlRpcException(XmlRpcErrorCodes.TRANSPORT_ERROR,
                     XmlRpcErrorCodes.TRANSPORT_ERROR_MSG + ": Could not create request with " + url);
-            request.Proxy = proxy;
             request.Method = "POST";
             request.ContentType = "text/xml";
             request.AllowWriteStreamBuffering = true;
