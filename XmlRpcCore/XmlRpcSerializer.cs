@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Text;
 using System.Xml;
 
 namespace XmlRpcCore
@@ -8,15 +9,13 @@ namespace XmlRpcCore
     /// <summary>Base class of classes serializing data to XML-RPC's XML format.</summary>
     /// <remarks>This class handles the basic type conversions like Integer to &lt;i4&gt;. </remarks>
     /// <seealso cref="XmlRpcXmlTokens" />
-    public class XmlRpcSerializer : XmlRpcXmlTokens
+    public abstract class XmlRpcSerializer : XmlRpcXmlTokens
     {
         /// <summary>Serialize the <c>XmlRpcRequest</c> to the output stream.</summary>
-        /// <param name="output">An <c>XmlTextWriter</c> stream to write data to.</param>
+        /// <param name="output">An <c>XmlWriter</c> stream to write data to.</param>
         /// <param name="obj">An <c>Object</c> to serialize.</param>
         /// <seealso cref="XmlRpcRequest" />
-        public virtual void Serialize(XmlTextWriter output, object obj)
-        {
-        }
+        public abstract void Serialize(XmlWriter output, object obj);
 
         /// <summary>Serialize the <c>XmlRpcRequest</c> to a String.</summary>
         /// <remarks>Note this may represent a real memory hog for a large request.</remarks>
@@ -25,28 +24,33 @@ namespace XmlRpcCore
         /// <seealso cref="XmlRpcRequest" />
         public string Serialize(object obj)
         {
-            var strBuf = new StringWriter();
-            var xml = new XmlTextWriter(strBuf);
-            xml.Formatting = Formatting.Indented;
-            xml.Indentation = 4;
-            Serialize(xml, obj);
-            xml.Flush();
-            var returns = strBuf.ToString();
-            xml.Close();
-            return returns;
+            using (var stream = new MemoryStream())
+            {
+                using (var writer = XmlWriter.Create(stream,
+                    new XmlWriterSettings {Encoding = Encoding.ASCII, Indent = true}))
+                {
+                    Serialize(writer, obj);
+                }
+
+                // reset position
+                stream.Position = 0;
+                using (var reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
         }
 
         /// <remarks>Serialize the object to the output stream.</remarks>
-        /// <param name="output">An <c>XmlTextWriter</c> stream to write data to.</param>
+        /// <param name="output">An <c>XmlWriter</c> stream to write data to.</param>
         /// <param name="obj">An <c>Object</c> to serialize.</param>
-        public void SerializeObject(XmlTextWriter output, object obj)
+        public void SerializeObject(XmlWriter output, object obj)
         {
             if (obj == null)
                 return;
 
-            if (obj is byte[])
+            if (obj is byte[] ba)
             {
-                var ba = (byte[]) obj;
                 output.WriteStartElement(BASE64);
                 output.WriteBase64(ba, 0, ba.Length);
                 output.WriteEndElement();
@@ -59,17 +63,17 @@ namespace XmlRpcCore
             {
                 output.WriteElementString(INT, obj.ToString());
             }
-            else if (obj is DateTime)
+            else if (obj is DateTime time)
             {
-                output.WriteElementString(DATETIME, ((DateTime) obj).ToString(ISO_DATETIME));
+                output.WriteElementString(DATETIME, time.ToString(ISO_DATETIME));
             }
             else if (obj is double)
             {
                 output.WriteElementString(DOUBLE, obj.ToString());
             }
-            else if (obj is bool)
+            else if (obj is bool b)
             {
-                output.WriteElementString(BOOLEAN, (bool) obj ? "1" : "0");
+                output.WriteElementString(BOOLEAN, b ? "1" : "0");
             }
             else if (obj is IList)
             {
@@ -82,6 +86,7 @@ namespace XmlRpcCore
                         SerializeObject(output, member);
                         output.WriteEndElement();
                     }
+
                 output.WriteEndElement();
                 output.WriteEndElement();
             }
@@ -98,6 +103,7 @@ namespace XmlRpcCore
                     output.WriteEndElement();
                     output.WriteEndElement();
                 }
+
                 output.WriteEndElement();
             }
         }

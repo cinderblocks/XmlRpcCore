@@ -1,11 +1,7 @@
 using System;
 using System.Collections;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace XmlRpcCore
 {
@@ -14,6 +10,9 @@ namespace XmlRpcCore
     {
         private readonly Lazy<XmlRpcRequestSerializer> _serializer =
             new Lazy<XmlRpcRequestSerializer>(() => new XmlRpcRequestSerializer());
+
+        // XXX: workaround virtual method call in constructor
+        private string _methodName = "";
 
         /// <summary>Instantiate an <c>XmlRpcRequest</c></summary>
         public XmlRpcRequest()
@@ -32,9 +31,6 @@ namespace XmlRpcCore
             _methodName = methodName;
             Params = parameters;
         }
-
-        // XXX: workaround virtual method call in constructor
-        private string _methodName = "";
 
         /// <summary><c>ArrayList</c> containing the parameters for the request.</summary>
         public virtual IList Params { get; }

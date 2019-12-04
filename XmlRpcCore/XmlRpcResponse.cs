@@ -28,7 +28,7 @@ namespace XmlRpcCore
         /// <summary>The data value of the response, may be fault data.</summary>
         public object Value
         {
-            get { return _value; }
+            get => _value;
             set
             {
                 IsFault = false;

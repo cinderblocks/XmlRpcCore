@@ -28,9 +28,9 @@ namespace XmlRpcCore
     /// </remarks>
     public class Logger
     {
-        ///<summary>Delegate definition for logging.</summary>
-        ///<param name="message">The message <c>String</c> to log.</param>
-        ///<param name="level">The <c>LogLevel</c> of your message.</param>
+        /// <summary>Delegate definition for logging.</summary>
+        /// <param name="message">The message <c>String</c> to log.</param>
+        /// <param name="level">The <c>LogLevel</c> of your message.</param>
         public delegate void LoggerDelegate(string message, LogLevel level);
 
         ///<summary>The LoggerDelegate that will recieve WriteEntry requests.</summary>

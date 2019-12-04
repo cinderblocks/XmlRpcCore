@@ -18,10 +18,7 @@ namespace XmlRpcCore
         }
 
         /// <summary>The value of the faults message, i.e. the faultString.</summary>
-        public string FaultString
-        {
-            get { return Message; }
-        }
+        public string FaultString => Message;
 
         /// <summary>The value of the faults code, i.e. the faultCode.</summary>
         public int FaultCode { get; }

@@ -11,23 +11,15 @@ namespace XmlRpcCore
 
         /// <summary>A static singleton instance of this deserializer.</summary>
         [Obsolete("This object is now thread safe, just use an instance.", false)]
-        public static XmlRpcRequestDeserializer Singleton
-        {
-            get
-            {
-                if (_singleton == null)
-                    _singleton = new XmlRpcRequestDeserializer();
-
-                return _singleton;
-            }
-        }
+        public static XmlRpcRequestDeserializer Singleton =>
+            _singleton ?? (_singleton = new XmlRpcRequestDeserializer());
 
         /// <summary>Static method that parses XML data into a request using the Singleton.</summary>
         /// <param name="xmlData"><c>StreamReader</c> containing an XML-RPC request.</param>
         /// <returns><c>XmlRpcRequest</c> object resulting from the parse.</returns>
         public override object Deserialize(TextReader xmlData)
         {
-            var reader = new XmlTextReader(xmlData);
+            var reader = XmlReader.Create(xmlData);
             var request = new XmlRpcRequest();
             var done = false;
 
@@ -40,23 +32,27 @@ namespace XmlRpcCore
                     switch (reader.NodeType)
                     {
                         case XmlNodeType.EndElement:
-                            switch (reader.Name)
+                        {
+                            if (reader.Name == METHOD_NAME)
                             {
-                                case METHOD_NAME:
-                                    request.MethodName = _text;
-                                    break;
-                                case METHOD_CALL:
-                                    done = true;
-                                    break;
-                                case PARAM:
-                                    request.Params.Add(_value);
-                                    _text = null;
-                                    break;
+                                request.MethodName = _text;
                             }
+                            else if (reader.Name == METHOD_CALL)
+                            {
+                                done = true;
+                            }
+                            else if (reader.Name == PARAM)
+                            {
+                                request.Params.Add(_value);
+                                _text = null;
+                            }
+
                             break;
+                        }
                     }
                 }
             }
+
             return request;
         }
     }
