@@ -12,7 +12,7 @@
     <TargetFrameworkProfile />
     <Authors>Cinder Roxley</Authors>
     <Company>Sjofn LLC</Company>
-    <Version>3.0.0.0</Version>
+    <Version>3.1.0.0</Version>
     <Description>A small extremely simple to use XmlRcp library</Description>
     <Copyright>Copyright 2003 Nicholas Christopher, Copyright 2016-2019 Sjofn LLC. All Rights Reserved.</Copyright>
     <PackageTags>xmlrpc,networking</PackageTags>
