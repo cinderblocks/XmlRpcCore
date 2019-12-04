@@ -25,10 +25,10 @@ namespace XmlRpcCore
         }
 
         /// <summary>Serialize the <c>XmlRpcRequest</c> to the output stream.</summary>
-        /// <param name="output">An <c>XmlTextWriter</c> stream to write data to.</param>
+        /// <param name="output">An <c>XmlWriter</c> stream to write data to.</param>
         /// <param name="obj">An <c>XmlRpcRequest</c> to serialize.</param>
         /// <seealso cref="XmlRpcRequest" />
-        public override void Serialize(XmlTextWriter output, object obj)
+        public override void Serialize(XmlWriter output, object obj)
         {
             var request = (XmlRpcRequest) obj;
             output.WriteStartDocument();

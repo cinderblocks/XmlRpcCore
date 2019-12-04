@@ -19,28 +19,12 @@ write something that was easy to use while being flexible.
 
   * Fully XML-RPC specification compliant, including key extensions. 
   * Simple client (XmlRpcRequest) 
-  * Complete single class embeddable server (XmlRpcServer) 
-  * XML-RPC System object implemented (XmlRpcSystemObject) 
   * Method level exposure granularity (XmlRpcExposedAttribute)
-  * Mono support (See [Mono](docs/MONO.html)) 
-  * .NET Compact Framework support (See [CF](docs/CF.html)). 
   * Option of dynamic local proxies.
 
-## Basic Test
-
-Open two command shells, in one:
-
-    
-         SampleServer
-    
-
-In the other:
-
-    
-         SampleClient
-    
-
 ## Documentation
+
+This needs to be regenerated and documentation needs to be updated.
 
   * The API documentation: [Documentation](docs/classes/XmlRpcCS.html)
   * The descriptions of the type mapping: [Types](docs/TYPES.html)
@@ -48,34 +32,24 @@ In the other:
 
 ## Sample Code
 
-Under src/samples there are examples. Read the [Examples](docs/EXAMPLES.html)
-for more info.
+These need to be updated...
 
 ## Unit Tests
 
-Under tests/ there are some basic unit tests. To run them have NUnit
-installed, edit the path to NUnit in xmlrpccs.build and then:
-
-    
-    	nant -find unit-tests
-
-Why didn't I use nant's nunit task you ask? It's rather broken.
+These need to be updated...
 
 ## License
 
-XmlRpcCS is under the BSD license. See: [License](LICENSE.html)
+XmlRpcCore is under the BSD license. See: [License](LICENSE.html)
 
 ## References
 
   * [xmlrpc.org](http://xmlrpc.org) To learn more about XML-RPC. 
-  * [nant.sourceforge.net](http://nant.sourceforge.net) To learn more about nant. 
-  * [nunit.sourceforge.net](http://nunit.sourceforge.net) To learn more about NUnit unit testing.
-  * [go-mono.net](http://go-mono.net) To learn more about the mono project 
 
 ## To Do
 
   * Support system object "capabilities" method
   * Improve system object's "methodHelp" support - rip from XML docs somehow.
-  * Method overloading based on arguements
+  * Method overloading based on arguments
   * More unit tests
   * Tutorial doc

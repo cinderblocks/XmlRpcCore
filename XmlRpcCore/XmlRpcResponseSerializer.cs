@@ -25,10 +25,10 @@ namespace XmlRpcCore
         }
 
         /// <summary>Serialize the <c>XmlRpcResponse</c> to the output stream.</summary>
-        /// <param name="output">An <c>XmlTextWriter</c> stream to write data to.</param>
+        /// <param name="output">An <c>XmlWriter</c> stream to write data to.</param>
         /// <param name="obj">An <c>Object</c> to serialize.</param>
         /// <seealso cref="XmlRpcResponse" />
-        public override void Serialize(XmlTextWriter output, object obj)
+        public override void Serialize(XmlWriter output, object obj)
         {
             var response = (XmlRpcResponse) obj;
 

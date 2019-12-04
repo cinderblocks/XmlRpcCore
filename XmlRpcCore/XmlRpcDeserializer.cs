@@ -57,7 +57,7 @@ namespace XmlRpcCore
         ///     this object deal with request/response spefic elements.
         /// </remarks>
         /// <param name="reader"><c>XmlTextReader</c> of the in progress parsing data stream.</param>
-        protected void DeserializeNode(XmlTextReader reader)
+        protected void DeserializeNode(XmlReader reader)
         {
             switch (reader.NodeType)
             {
@@ -81,6 +81,7 @@ namespace XmlRpcCore
                             _container = new ArrayList();
                             break;
                     }
+
                     break;
                 case XmlNodeType.EndElement:
                     if (Logger.Delegate != null)
@@ -135,13 +136,12 @@ namespace XmlRpcCore
                             PopContext();
                             break;
                     }
+
                     break;
                 case XmlNodeType.Text:
                     if (Logger.Delegate != null)
                         Logger.WriteEntry("Text " + reader.Value, LogLevel.Information);
                     _text = reader.Value;
-                    break;
-                default:
                     break;
             }
         }
