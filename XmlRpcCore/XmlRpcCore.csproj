@@ -7,7 +7,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XmlRpcCore</RootNamespace>
     <AssemblyName>XmlRpcCore</AssemblyName>
-    <TargetFrameworks>net40;net45;net46;net461;net472;net48;netcoreapp2.0;netcoreapp2.2;netcoreapp3.0;netstandard2.0;netstandard2.1</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <Authors>Cinder Roxley</Authors>
@@ -21,6 +20,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/cinderblocks/XmlRpcCore</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
