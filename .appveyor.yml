@@ -3,15 +3,10 @@ init:
   - ps: $env:TAG_VERSION = $env:TAG_VERSION -replace 'v',''
   - ps: Write-Host "Setting version to '$env:TAG_VERSION'"
   - ps: Update-AppveyorBuild -Version "$env:TAG_VERSION"
-  - ps: Install-Module -Name SignPath
 
 image: Visual Studio 2019
 
 configuration: Release
-
-environment:
-  SIGN_TOKEN:
-    secure: 1CtzaepYsuG1vKjlwJVLmjjIuhNHexDv/cJLjBKv83xQ98AquMUG/+v4mFoqXM6x
 
 pull_requests:
   do_not_increment_build_number: true
@@ -41,9 +36,6 @@ cache:
 
 before_build:
   - nuget restore XmlRpcCore.sln
-
-after_build:
-  - ps: Submit-SigningRequest -InputArtifactPath "$env:APPVEYOR_BUILD_FOLDER\XmlRpcCore.$env:TAG_VERSION.nuget" -CIUserToken "$env:SIGN_TOKEN" -OrganizationId "8446d24b-7c29-473d-b13c-83bac9d9db17" -ProjectKey "XmlRpcCore" -SigningPolicyKey "XmlRpcCore" -OutputArtifactPath "$env:APPVEYOR_BUILD_FOLDER\XmlRpcCore.$env:TAG_VERSION.nuget" -WaitForCompletion
 
 deploy:
   - provider: NuGet
