@@ -43,3 +43,5 @@ deploy:
     authorization:
       secure: 5X22VkhN0wjILZOvbIPXRUutxFSiwHxhe9e7xYxEMGhxq+mAyMptnWJ0PH20YS8+v+nsnV7woz0pgYHBTEYahQ==
     skip_symbols: true
+    on:
+      appveyor_repo_tag: true
