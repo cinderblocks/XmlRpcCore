@@ -92,21 +92,20 @@ namespace XmlRpcCore
                             _value = Convert.FromBase64String(_text);
                             break;
                         case BOOLEAN:
-                            int val = short.Parse(_text);
-                            if (val == 0)
-                                _value = false;
-                            else if (val == 1)
-                                _value = true;
+                            short bval;
+                            _value = (short.TryParse(_text, out bval) && bval == 1) ? true : false;
                             break;
                         case STRING:
                             _value = _text;
                             break;
                         case DOUBLE:
-                            _value = double.Parse(_text);
+                            double dval;
+                            _value = double.TryParse(_text, out dval) ? dval : 0.0;
                             break;
                         case INT:
                         case ALT_INT:
-                            _value = int.Parse(_text);
+                            int ival;
+                            _value = int.TryParse(_text, out ival) ? ival : 0;
                             break;
                         case DATETIME:
 #if __MONO__
@@ -122,13 +121,13 @@ namespace XmlRpcCore
                             if (_value == null)
                                 _value = _text; // some kits don't use <string> tag, they just do <value>
 
-                            if (_container != null && _container is IList) // in an array?  If so add value to it.
-                                ((IList) _container).Add(_value);
+                            if (_container is IList list) // in an array?  If so add value to it.
+                                list.Add(_value);
                             break;
                         case MEMBER:
-                            if (_container != null && _container is IDictionary)
+                            if (_container is IDictionary dictionary)
                                 // in an struct?  If so add value to it.
-                                ((IDictionary) _container).Add(_name, _value);
+                                dictionary.Add(_name, _value);
                             break;
                         case ARRAY:
                         case STRUCT:
