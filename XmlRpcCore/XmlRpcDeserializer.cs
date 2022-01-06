@@ -93,7 +93,7 @@ namespace XmlRpcCore
                             break;
                         case BOOLEAN:
                             short bval;
-                            _value = (short.TryParse(_text, out bval) && bval == 1) ? true : false;
+                            _value = (short.TryParse(_text, out bval) && bval == 1);
                             break;
                         case STRING:
                             _value = _text;

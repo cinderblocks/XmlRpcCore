@@ -26,9 +26,11 @@ namespace XmlRpcCore
                 var reqArray = new ArrayList();
                 foreach (XmlRpcRequest request in Requests)
                 {
-                    var requestEntry = new Hashtable();
-                    requestEntry.Add(XmlRpcXmlTokens.METHOD_NAME, request.MethodName);
-                    requestEntry.Add(XmlRpcXmlTokens.PARAMS, request.Params);
+                    var requestEntry = new Hashtable
+                    {
+                        { XmlRpcXmlTokens.METHOD_NAME, request.MethodName },
+                        { XmlRpcXmlTokens.PARAMS, request.Params }
+                    };
                     reqArray.Add(requestEntry);
                 }
 

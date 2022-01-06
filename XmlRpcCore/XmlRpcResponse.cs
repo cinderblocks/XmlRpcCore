@@ -63,9 +63,11 @@ namespace XmlRpcCore
         /// <param name="message"><c>String</c> the faultString value.</param>
         public void SetFault(int code, string message)
         {
-            var fault = new Hashtable();
-            fault.Add("faultCode", code);
-            fault.Add("faultString", message);
+            var fault = new Hashtable
+            {
+                { "faultCode", code },
+                { "faultString", message }
+            };
             Value = fault;
             IsFault = true;
         }

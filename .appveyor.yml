@@ -18,10 +18,6 @@ dotnet_csproj:
   patch: true
   file: '**\*.csproj'
   version: '{version}'
-  package_version: '{version}'
-  assembly_version: '{version}'
-  file_version: '{version}'
-  informational_version: '{version}'
 
 build:
   project: XmlRpcCore.sln
@@ -36,12 +32,3 @@ cache:
 
 before_build:
   - nuget restore XmlRpcCore.sln
-
-deploy:
-  - provider: Webhook
-    url: https://app.signpath.io/API/v1/8446d24b-7c29-473d-b13c-83bac9d9db17/Integrations/AppVeyor?ProjectKey=XmlRpcCore&SigningPolicyKey=XmlRpcCore
-    authorization:
-      secure: 5X22VkhN0wjILZOvbIPXRUutxFSiwHxhe9e7xYxEMGhxq+mAyMptnWJ0PH20YS8+v+nsnV7woz0pgYHBTEYahQ==
-    skip_symbols: true
-    on:
-      appveyor_repo_tag: true

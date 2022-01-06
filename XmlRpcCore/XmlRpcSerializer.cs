@@ -75,12 +75,12 @@ namespace XmlRpcCore
             {
                 output.WriteElementString(BOOLEAN, b ? "1" : "0");
             }
-            else if (obj is IList)
+            else if (obj is IList list)
             {
                 output.WriteStartElement(ARRAY);
                 output.WriteStartElement(DATA);
-                if (((ArrayList) obj).Count > 0)
-                    foreach (var member in (IList) obj)
+                if (((ArrayList) list).Count > 0)
+                    foreach (var member in list)
                     {
                         output.WriteStartElement(VALUE);
                         SerializeObject(output, member);
@@ -90,16 +90,15 @@ namespace XmlRpcCore
                 output.WriteEndElement();
                 output.WriteEndElement();
             }
-            else if (obj is IDictionary)
+            else if (obj is IDictionary dictionary)
             {
-                var h = (IDictionary) obj;
                 output.WriteStartElement(STRUCT);
-                foreach (string key in h.Keys)
+                foreach (string key in dictionary.Keys)
                 {
                     output.WriteStartElement(MEMBER);
                     output.WriteElementString(NAME, key);
                     output.WriteStartElement(VALUE);
-                    SerializeObject(output, h[key]);
+                    SerializeObject(output, dictionary[key]);
                     output.WriteEndElement();
                     output.WriteEndElement();
                 }

@@ -13,16 +13,7 @@ namespace XmlRpcCore
         private static XmlRpcResponseSerializer _singleton;
 
         /// <summary>A static singleton instance of this deserializer.</summary>
-        public static XmlRpcResponseSerializer Singleton
-        {
-            get
-            {
-                if (_singleton == null)
-                    _singleton = new XmlRpcResponseSerializer();
-
-                return _singleton;
-            }
-        }
+        public static XmlRpcResponseSerializer Singleton => _singleton ?? (_singleton = new XmlRpcResponseSerializer());
 
         /// <summary>Serialize the <c>XmlRpcResponse</c> to the output stream.</summary>
         /// <param name="output">An <c>XmlWriter</c> stream to write data to.</param>
