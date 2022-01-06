@@ -42,7 +42,10 @@ namespace XmlRpcCore
             get
             {
                 if (!IsFault)
+                {
                     return 0;
+                }
+
                 return (int) ((Hashtable) _value)[XmlRpcXmlTokens.FAULT_CODE];
             }
         }
@@ -53,7 +56,9 @@ namespace XmlRpcCore
             get
             {
                 if (!IsFault)
-                    return "";
+                {
+                    return string.Empty;
+                }
                 return (string) ((Hashtable) _value)[XmlRpcXmlTokens.FAULT_STRING];
             }
         }

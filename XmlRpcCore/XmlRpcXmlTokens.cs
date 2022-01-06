@@ -1,7 +1,7 @@
 namespace XmlRpcCore
 {
     /// <summary>Class collecting <c>String</c> tokens that are part of XML-RPC files.</summary>
-    public class XmlRpcXmlTokens
+    public static class XmlRpcXmlTokens
     {
         /// <summary>C# formatting string to describe an ISO 8601 date.</summary>
         public const string ISO_DATETIME = "yyyyMMdd\\THH\\:mm\\:ss";

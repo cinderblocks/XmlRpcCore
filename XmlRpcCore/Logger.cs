@@ -23,7 +23,7 @@ namespace XmlRpcCore
     /// </summary>
     /// <remarks>
     ///     This singleton provides a centralized log. The actual WriteEntry calls are passed
-    ///     off to a delegate however. Having a delegate do the actual logginh allows you to
+    ///     off to a delegate however. Having a delegate do the actual logging allows you to
     ///     implement different logging mechanism and have them take effect throughout the system.
     /// </remarks>
     public class Logger
@@ -33,8 +33,8 @@ namespace XmlRpcCore
         /// <param name="level">The <c>LogLevel</c> of your message.</param>
         public delegate void LoggerDelegate(string message, LogLevel level);
 
-        ///<summary>The LoggerDelegate that will recieve WriteEntry requests.</summary>
-        public static LoggerDelegate Delegate = null;
+        ///<summary>The LoggerDelegate that will receive WriteEntry requests.</summary>
+        public static LoggerDelegate Delegate;
 
         /// <summary>
         ///     Method logging events are sent to.
@@ -43,8 +43,7 @@ namespace XmlRpcCore
         /// <param name="level">The <c>LogLevel</c> of your message.</param>
         public static void WriteEntry(string message, LogLevel level)
         {
-            if (Delegate != null)
-                Delegate(message, level);
+            Delegate?.Invoke(message, level);
         }
     }
 }

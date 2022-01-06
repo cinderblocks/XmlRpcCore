@@ -49,6 +49,8 @@ namespace XmlRpcCore
 
                             break;
                         }
+                        default:
+                            break;
                     }
                 }
             }

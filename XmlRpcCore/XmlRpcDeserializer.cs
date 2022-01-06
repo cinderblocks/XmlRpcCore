@@ -71,12 +71,12 @@ namespace XmlRpcCore
                             _text = null;
                             break;
                         case STRUCT:
-                            if (reader.IsEmptyElement) break;
+                            if (reader.IsEmptyElement) { break; }
                             PushContext();
                             _container = new Hashtable();
                             break;
                         case ARRAY:
-                            if (reader.IsEmptyElement) break;
+                            if (reader.IsEmptyElement) { break; }
                             PushContext();
                             _container = new ArrayList();
                             break;
@@ -121,8 +121,11 @@ namespace XmlRpcCore
                             if (_value == null)
                                 _value = _text; // some kits don't use <string> tag, they just do <value>
 
-                            if (_container is IList list) // in an array?  If so add value to it.
+                            if (_container is IList list)// in an array?  If so add value to it.
+                            {
                                 list.Add(_value);
+                            }
+
                             break;
                         case MEMBER:
                             if (_container is IDictionary dictionary)
@@ -141,6 +144,8 @@ namespace XmlRpcCore
                     if (Logger.Delegate != null)
                         Logger.WriteEntry("Text " + reader.Value, LogLevel.Information);
                     _text = reader.Value;
+                    break;
+                default:
                     break;
             }
         }

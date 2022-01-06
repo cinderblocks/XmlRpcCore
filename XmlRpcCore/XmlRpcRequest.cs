@@ -49,10 +49,7 @@ namespace XmlRpcCore
             {
                 var index = MethodName.IndexOf(".", StringComparison.Ordinal);
 
-                if (index == -1)
-                    return MethodName;
-
-                return MethodName.Substring(0, index);
+                return index == -1 ? MethodName : MethodName.Substring(0, index);
             }
         }
 
@@ -63,10 +60,9 @@ namespace XmlRpcCore
             {
                 var index = MethodName.IndexOf(".", StringComparison.Ordinal);
 
-                if (index == -1)
-                    return MethodName;
-
-                return MethodName.Substring(index + 1, MethodName.Length - index - 1);
+                return index == -1 
+                    ? MethodName 
+                    : MethodName.Substring(index + 1, MethodName.Length - index - 1);
             }
         }
 
@@ -80,7 +76,9 @@ namespace XmlRpcCore
             var res = await client.PostAsXmlRpcAsync(url, this);
 
             if (res.IsFault)
+            {
                 throw new XmlRpcException(res.FaultCode, res.FaultString);
+            }
 
             return res.Value;
         }

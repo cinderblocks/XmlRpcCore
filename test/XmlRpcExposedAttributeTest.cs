@@ -8,9 +8,9 @@ namespace Nwc.XmlRpc.Tests
   public class Exposed
   {
     [XmlRpcExposed]
-      public void Open() {}
-    public void Closed() {}
-  }
+    public void Open() { /* noop */ }
+    public void Closed() { /* noop */ }
+    }
 
   [TestFixture]
   public class XmlRpcExposedAttributeTest
