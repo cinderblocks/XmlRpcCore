@@ -145,8 +145,6 @@ namespace XmlRpcCore
                         Logger.WriteEntry("Text " + reader.Value, LogLevel.Information);
                     _text = reader.Value;
                     break;
-                default:
-                    break;
             }
         }
 

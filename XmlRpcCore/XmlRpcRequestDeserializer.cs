@@ -33,24 +33,22 @@ namespace XmlRpcCore
                     {
                         case XmlNodeType.EndElement:
                         {
-                            if (reader.Name == METHOD_NAME)
+                            switch (reader.Name)
                             {
-                                request.MethodName = _text;
-                            }
-                            else if (reader.Name == METHOD_CALL)
-                            {
-                                done = true;
-                            }
-                            else if (reader.Name == PARAM)
-                            {
-                                request.Params.Add(_value);
-                                _text = null;
+                                case METHOD_NAME:
+                                    request.MethodName = _text;
+                                    break;
+                                case METHOD_CALL:
+                                    done = true;
+                                    break;
+                                case PARAM:
+                                    request.Params.Add(_value);
+                                    _text = null;
+                                    break;
                             }
 
                             break;
                         }
-                        default:
-                            break;
                     }
                 }
             }

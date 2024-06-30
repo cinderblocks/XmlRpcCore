@@ -46,64 +46,62 @@ namespace XmlRpcCore
         /// <param name="obj">An <c>Object</c> to serialize.</param>
         public void SerializeObject(XmlWriter output, object obj)
         {
-            if (obj == null)
-                return;
+            switch (obj)
+            {
+                case null:
+                    return;
+                case byte[] ba:
+                    output.WriteStartElement(BASE64);
+                    output.WriteBase64(ba, 0, ba.Length);
+                    output.WriteEndElement();
+                    break;
+                case string _:
+                    output.WriteElementString(STRING, obj.ToString());
+                    break;
+                case int _:
+                    output.WriteElementString(INT, obj.ToString());
+                    break;
+                case DateTime time:
+                    output.WriteElementString(DATETIME, time.ToString(ISO_DATETIME));
+                    break;
+                case double _:
+                    output.WriteElementString(DOUBLE, obj.ToString());
+                    break;
+                case bool b:
+                    output.WriteElementString(BOOLEAN, b ? "1" : "0");
+                    break;
+                case IList list:
+                {
+                    output.WriteStartElement(ARRAY);
+                    output.WriteStartElement(DATA);
+                    if (((ArrayList) list).Count > 0)
+                        foreach (var member in list)
+                        {
+                            output.WriteStartElement(VALUE);
+                            SerializeObject(output, member);
+                            output.WriteEndElement();
+                        }
 
-            if (obj is byte[] ba)
-            {
-                output.WriteStartElement(BASE64);
-                output.WriteBase64(ba, 0, ba.Length);
-                output.WriteEndElement();
-            }
-            else if (obj is string)
-            {
-                output.WriteElementString(STRING, obj.ToString());
-            }
-            else if (obj is int)
-            {
-                output.WriteElementString(INT, obj.ToString());
-            }
-            else if (obj is DateTime time)
-            {
-                output.WriteElementString(DATETIME, time.ToString(ISO_DATETIME));
-            }
-            else if (obj is double)
-            {
-                output.WriteElementString(DOUBLE, obj.ToString());
-            }
-            else if (obj is bool b)
-            {
-                output.WriteElementString(BOOLEAN, b ? "1" : "0");
-            }
-            else if (obj is IList list)
-            {
-                output.WriteStartElement(ARRAY);
-                output.WriteStartElement(DATA);
-                if (((ArrayList) list).Count > 0)
-                    foreach (var member in list)
+                    output.WriteEndElement();
+                    output.WriteEndElement();
+                    break;
+                }
+                case IDictionary dictionary:
+                {
+                    output.WriteStartElement(STRUCT);
+                    foreach (string key in dictionary.Keys)
                     {
+                        output.WriteStartElement(MEMBER);
+                        output.WriteElementString(NAME, key);
                         output.WriteStartElement(VALUE);
-                        SerializeObject(output, member);
+                        SerializeObject(output, dictionary[key]);
+                        output.WriteEndElement();
                         output.WriteEndElement();
                     }
 
-                output.WriteEndElement();
-                output.WriteEndElement();
-            }
-            else if (obj is IDictionary dictionary)
-            {
-                output.WriteStartElement(STRUCT);
-                foreach (string key in dictionary.Keys)
-                {
-                    output.WriteStartElement(MEMBER);
-                    output.WriteElementString(NAME, key);
-                    output.WriteStartElement(VALUE);
-                    SerializeObject(output, dictionary[key]);
                     output.WriteEndElement();
-                    output.WriteEndElement();
+                    break;
                 }
-
-                output.WriteEndElement();
             }
         }
     }

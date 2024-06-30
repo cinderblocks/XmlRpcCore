@@ -32,16 +32,17 @@ namespace XmlRpcCore
                     switch (reader.NodeType)
                     {
                         case XmlNodeType.EndElement:
-                            if (reader.Name == FAULT)
+                            switch (reader.Name)
                             {
-                                response.Value = _value;
-                                response.IsFault = true;
-                            }
-                            else if (reader.Name == PARAM)
-                            {
-                                response.Value = _value;
-                                _value = null;
-                                _text = null;
+                                case FAULT:
+                                    response.Value = _value;
+                                    response.IsFault = true;
+                                    break;
+                                case PARAM:
+                                    response.Value = _value;
+                                    _value = null;
+                                    _text = null;
+                                    break;
                             }
 
                             break;
