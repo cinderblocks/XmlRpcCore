@@ -5,9 +5,8 @@ namespace XmlRpcCore
     /// <summary>Class that collects individual <c>XmlRpcRequest</c> objects and submits them as a <i>boxcarred</i> request.</summary>
     /// <remarks>
     ///     A boxcared request is when a number of request are collected before being sent via XML-RPC, and then are sent via
-    ///     a single HTTP connection. This results in a speed up from reduced connection time.  The results are then retuned
-    ///     collectively
-    ///     as well.
+    ///     a single HTTP connection. This results in a speed up from reduced connection time.  The results are then returned
+    ///     collectively as well.
     /// </remarks>
     /// <seealso cref="XmlRpcRequest" />
     public class XmlRpcBoxcarRequest : XmlRpcRequest
