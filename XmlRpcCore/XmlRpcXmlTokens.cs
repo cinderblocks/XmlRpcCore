@@ -4,7 +4,7 @@ namespace XmlRpcCore
     public abstract class XmlRpcXmlTokens
     {
         /// <summary>C# formatting string to describe an ISO 8601 date.</summary>
-        public const string ISO_DATETIME = "yyyyMMdd\\THH\\:mm\\:ss";
+        public const string ISO_DATETIME = @"yyyyMMdd\THH\:mm\:ss";
 
         /// <summary>Base64 field indicator.</summary>
         /// <remarks>Corresponds to the &lt;base64&gt; tag.</remarks>
