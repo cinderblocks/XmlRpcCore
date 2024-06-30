@@ -44,7 +44,7 @@ namespace XmlRpcCore
         /// <remarks>Serialize the object to the output stream.</remarks>
         /// <param name="output">An <c>XmlWriter</c> stream to write data to.</param>
         /// <param name="obj">An <c>Object</c> to serialize.</param>
-        public void SerializeObject(XmlWriter output, object obj)
+        public static void SerializeObject(XmlWriter output, object obj)
         {
             switch (obj)
             {
