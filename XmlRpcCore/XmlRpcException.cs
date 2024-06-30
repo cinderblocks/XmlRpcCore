@@ -26,7 +26,7 @@ namespace XmlRpcCore
         /// <summary>Format the message to include the code.</summary>
         public override string ToString()
         {
-            return "Code: " + FaultCode + " Message: " + base.ToString();
+            return $"Code: {FaultCode} Message: {base.ToString()}";
         }
     }
 }

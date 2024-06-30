@@ -63,7 +63,7 @@ namespace XmlRpcCore
             {
                 case XmlNodeType.Element:
                     if (Logger.Delegate != null)
-                        Logger.WriteEntry("START " + reader.Name, LogLevel.Information);
+                        Logger.WriteEntry($"START {reader.Name}", LogLevel.Information);
                     switch (reader.Name)
                     {
                         case VALUE:
@@ -85,7 +85,7 @@ namespace XmlRpcCore
                     break;
                 case XmlNodeType.EndElement:
                     if (Logger.Delegate != null)
-                        Logger.WriteEntry("END " + reader.Name, LogLevel.Information);
+                        Logger.WriteEntry($"END {reader.Name}", LogLevel.Information);
                     switch (reader.Name)
                     {
                         case BASE64:
@@ -142,7 +142,7 @@ namespace XmlRpcCore
                     break;
                 case XmlNodeType.Text:
                     if (Logger.Delegate != null)
-                        Logger.WriteEntry("Text " + reader.Value, LogLevel.Information);
+                        Logger.WriteEntry($"Text {reader.Value}", LogLevel.Information);
                     _text = reader.Value;
                     break;
             }
