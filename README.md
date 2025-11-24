@@ -76,6 +76,28 @@ var parsedRequest = (XmlRpcRequest)new XmlRpcRequestDeserializer().Deserialize(n
 var parsedResponse = (XmlRpcResponse)new XmlRpcResponseDeserializer().Deserialize(new StringReader(xmlText));
 ```
 
+POCO deserialization examples
+
+```csharp
+// Simple POCO mapped from a response value (struct)
+public class Person { public string name { get; set; } public int age { get; set; } }
+
+var respXml = "..."; // an XML-RPC response whose <value> is a struct { name, age }
+var person = new XmlRpcResponseDeserializer().Deserialize<Person>(new StringReader(respXml));
+
+// Constructor binding: map struct keys to constructor args
+public class PersonCtor { public string Name { get; } public int Age { get; } public PersonCtor(string name, int age) { Name = name; Age = age; } }
+var ctorPerson = new XmlRpcRequestDeserializer().Deserialize<PersonCtor>(new StringReader(requestXml));
+
+// Attribute mapping: use [XmlRpcName] to bind differently named fields
+public class PersonAttr { [XmlRpcName("fullname")] public string FullName { get; set; } public int Age { get; set; } }
+var attrPerson = new XmlRpcRequestDeserializer().Deserialize<PersonAttr>(new StringReader(requestXml));
+
+// Private setters and fields are supported by the binder
+public class PersonPrivate { public string Name { get; private set; } private int age; public int GetAge() => age; }
+var privatePerson = new XmlRpcRequestDeserializer().Deserialize<PersonPrivate>(new StringReader(requestXml));
+```
+
 Create and inspect a fault response:
 
 ```csharp
