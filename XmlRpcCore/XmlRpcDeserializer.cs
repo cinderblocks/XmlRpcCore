@@ -109,9 +109,9 @@ namespace XmlRpcCore
                             break;
                         case DATETIME:
 #if __MONO__
-		    _value = DateParse(_text);
+				_value = DateParse(_text);
 #else
-                            _value = DateTime.ParseExact(_text, "F", _dateFormat);
+                            _value = DateTime.ParseExact(_text, ISO_DATETIME, CultureInfo.InvariantCulture, DateTimeStyles.None);
 #endif
                             break;
                         case NAME:

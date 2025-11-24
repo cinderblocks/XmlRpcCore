@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 using System.Xml;
+using System.Globalization;
 
 namespace XmlRpcCore
 {
@@ -27,7 +28,7 @@ namespace XmlRpcCore
             using (var stream = new MemoryStream())
             {
                 using (var writer = XmlWriter.Create(stream,
-                    new XmlWriterSettings {Encoding = Encoding.ASCII, Indent = true}))
+                    new XmlWriterSettings {Encoding = Encoding.UTF8, Indent = true}))
                 {
                     Serialize(writer, obj);
                 }
@@ -62,7 +63,7 @@ namespace XmlRpcCore
                     output.WriteElementString(INT, obj.ToString());
                     break;
                 case DateTime time:
-                    output.WriteElementString(DATETIME, time.ToString(ISO_DATETIME));
+                    output.WriteElementString(DATETIME, time.ToString(ISO_DATETIME, CultureInfo.InvariantCulture));
                     break;
                 case double _:
                     output.WriteElementString(DOUBLE, obj.ToString());
