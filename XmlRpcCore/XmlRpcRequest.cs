@@ -36,8 +36,8 @@ namespace XmlRpcCore
         }
 
         /// <summary><c>IList</c> containing the parameters for the request.</summary>
-        [Obsolete("Use ParamsGeneric for generic collections. This non-generic property will be removed in a future release.", false)]
-        public virtual IList Params { get; }
+        [System.Obsolete("Use ParamsGeneric for generic collections. This non-generic property will be removed in a future release.", false)]
+        public virtual IList Params { get; protected set; }
 
         /// <summary>Generic view of the params property to aid migration to generics.</summary>
         public virtual IList<object> ParamsGeneric
@@ -49,6 +49,26 @@ namespace XmlRpcCore
 
                 // create a typed snapshot of the current non-generic params
                 return Params?.Cast<object>().ToList() ?? new List<object>();
+            }
+            set
+            {
+                if (value == null)
+                {
+                    Params = new ArrayList();
+                    return;
+                }
+
+                // If underlying supports generic list, replace it with a new list containing the values
+                if (Params is IList<object>)
+                {
+                    Params = new List<object>(value);
+                    return;
+                }
+
+                // Otherwise create a non-generic ArrayList for backward compatibility
+                var arr = new ArrayList();
+                foreach (var v in value) arr.Add(v);
+                Params = arr;
             }
         }
 
@@ -64,7 +84,7 @@ namespace XmlRpcCore
         {
             get
             {
-                var index = MethodName.IndexOf(".", StringComparison.Ordinal);
+                var index = MethodName.IndexOf(".", System.StringComparison.Ordinal);
 
                 return index == -1 ? MethodName : MethodName.Substring(0, index);
             }
@@ -75,7 +95,7 @@ namespace XmlRpcCore
         {
             get
             {
-                var index = MethodName.IndexOf(".", StringComparison.Ordinal);
+                var index = MethodName.IndexOf(".", System.StringComparison.Ordinal);
 
                 return index == -1 
                     ? MethodName 
