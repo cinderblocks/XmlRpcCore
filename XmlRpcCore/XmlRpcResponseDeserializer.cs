@@ -19,38 +19,46 @@ namespace XmlRpcCore
         /// <returns><c>XmlRpcResponse</c> object resulting from the parse.</returns>
         public override object Deserialize(TextReader xmlData)
         {
-            var reader = XmlReader.Create(xmlData);
-            var response = new XmlRpcResponse();
-
-            lock (this)
+            var settings = new XmlReaderSettings
             {
-                Reset();
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null
+            };
 
-                while (reader.Read())
+            using (var reader = XmlReader.Create(xmlData, settings))
+            {
+                var response = new XmlRpcResponse();
+
+                lock (this)
                 {
-                    DeserializeNode(reader); // Parent parse...
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.EndElement:
-                            switch (reader.Name)
-                            {
-                                case FAULT:
-                                    response.Value = _value;
-                                    response.IsFault = true;
-                                    break;
-                                case PARAM:
-                                    response.Value = _value;
-                                    _value = null;
-                                    _text = null;
-                                    break;
-                            }
+                    Reset();
 
-                            break;
+                    while (reader.Read())
+                    {
+                        DeserializeNode(reader); // Parent parse...
+                        switch (reader.NodeType)
+                        {
+                            case XmlNodeType.EndElement:
+                                switch (reader.Name)
+                                {
+                                    case FAULT:
+                                        response.Value = _value;
+                                        response.IsFault = true;
+                                        break;
+                                    case PARAM:
+                                        response.Value = _value;
+                                        _value = null;
+                                        _text = null;
+                                        break;
+                                }
+
+                                break;
+                        }
                     }
                 }
-            }
 
-            return response;
+                return response;
+            }
         }
     }
 }

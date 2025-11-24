@@ -19,41 +19,49 @@ namespace XmlRpcCore
         /// <returns><c>XmlRpcRequest</c> object resulting from the parse.</returns>
         public override object Deserialize(TextReader xmlData)
         {
-            var reader = XmlReader.Create(xmlData);
-            var request = new XmlRpcRequest();
-            var done = false;
-
-            lock (this)
+            var settings = new XmlReaderSettings
             {
-                Reset();
-                while (!done && reader.Read())
-                {
-                    DeserializeNode(reader); // Parent parse...
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.EndElement:
-                        {
-                            switch (reader.Name)
-                            {
-                                case METHOD_NAME:
-                                    request.MethodName = _text;
-                                    break;
-                                case METHOD_CALL:
-                                    done = true;
-                                    break;
-                                case PARAM:
-                                    request.Params.Add(_value);
-                                    _text = null;
-                                    break;
-                            }
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null
+            };
 
-                            break;
+            using (var reader = XmlReader.Create(xmlData, settings))
+            {
+                var request = new XmlRpcRequest();
+                var done = false;
+
+                lock (this)
+                {
+                    Reset();
+                    while (!done && reader.Read())
+                    {
+                        DeserializeNode(reader); // Parent parse...
+                        switch (reader.NodeType)
+                        {
+                            case XmlNodeType.EndElement:
+                            {
+                                switch (reader.Name)
+                                {
+                                    case METHOD_NAME:
+                                        request.MethodName = _text;
+                                        break;
+                                    case METHOD_CALL:
+                                        done = true;
+                                        break;
+                                    case PARAM:
+                                        request.Params.Add(_value);
+                                        _text = null;
+                                        break;
+                                }
+
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            return request;
+                return request;
+            }
         }
     }
 }
