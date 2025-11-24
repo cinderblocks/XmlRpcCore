@@ -37,4 +37,16 @@
   <ItemGroup>
 	<None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!-- Automatically detect if Microsoft.Extensions.Logging is referenced and define HAS_MS_LOGGING -->
+  <Target Name="DetectMsLogging" BeforeTargets="BeforeBuild;PrepareForBuild">
+    <ItemGroup>
+      <!-- Look for common logging package references -->
+      <_MsLoggingPkg Include="@(PackageReference)" Condition="'%(Identity)' == 'Microsoft.Extensions.Logging.Abstractions' or '%(Identity)' == 'Microsoft.Extensions.Logging' or '%(Identity)' == 'Microsoft.Extensions.Logging.Console'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <HasMsLogging Condition=" '@(_MsLoggingPkg)' != '' ">true</HasMsLogging>
+      <DefineConstants Condition=" '$(HasMsLogging)' == 'true' ">HAS_MS_LOGGING;$(DefineConstants)</DefineConstants>
+    </PropertyGroup>
+  </Target>
 </Project>
