@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 
 namespace XmlRpcCore
@@ -67,6 +68,38 @@ namespace XmlRpcCore
         public virtual object Deserialize(TextReader xmlData)
         {
             return null;
+        }
+
+        /// <summary>Deserialize XML from a <see cref="TextReader"/> and bind to a POCO of type T if necessary.</summary>
+        public T Deserialize<T>(TextReader xmlData)
+        {
+            var obj = Deserialize(xmlData);
+
+            // If the concrete deserializer returned an XmlRpcResponse, map its Value
+            if (obj is XmlRpcResponse resp)
+            {
+                return (T)MapToType(resp.Value, typeof(T));
+            }
+
+            // If the concrete deserializer returned an XmlRpcRequest, map first param if present
+            if (obj is XmlRpcRequest req)
+            {
+                if (req.Params != null && req.Params.Count > 0)
+                    return (T)MapToType(req.Params[0], typeof(T));
+
+                return default(T);
+            }
+
+            return (T)MapToType(obj, typeof(T));
+        }
+
+        /// <summary>Deserialize XML from a <see cref="string"/> and bind to a POCO of type T if necessary.</summary>
+        public T Deserialize<T>(string xmlData)
+        {
+            using (var sr = new StringReader(xmlData))
+            {
+                return Deserialize<T>(sr);
+            }
         }
 
         /// <summary>Protected method to parse a node in an XML-RPC XML stream.</summary>
@@ -249,6 +282,185 @@ namespace XmlRpcCore
             _nodeCount = 0;
             _depth = 0;
         }
+
+#region POCO binder helpers
+        private object MapToType(object value, Type targetType)
+        {
+            if (value == null)
+                return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
+
+            // If already assignable
+            if (targetType.IsInstanceOfType(value))
+                return value;
+
+            // Handle nullable
+            var underlying = Nullable.GetUnderlyingType(targetType);
+            if (underlying != null)
+            {
+                return MapToType(value, underlying);
+            }
+
+            // Primitives, enums, strings, DateTime
+            if (targetType.IsPrimitive || targetType == typeof(string) || targetType == typeof(decimal) || targetType == typeof(DateTime) || targetType.IsEnum)
+            {
+                try
+                {
+                    if (targetType == typeof(DateTime) && value is string s)
+                    {
+                        return DateTime.ParseExact(s, ISO_DATETIME, CultureInfo.InvariantCulture);
+                    }
+
+                    return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    throw new InvalidCastException($"Cannot convert value to {targetType}");
+                }
+            }
+
+            // Arrays / generic lists
+            if (targetType.IsArray && value is IList listVal)
+            {
+                var elemType = targetType.GetElementType();
+                var array = Array.CreateInstance(elemType, listVal.Count);
+                for (int i = 0; i < listVal.Count; i++)
+                    array.SetValue(MapToType(listVal[i], elemType), i);
+                return array;
+            }
+
+            if (IsGenericList(targetType) && value is IList listVal2)
+            {
+                var elemType = targetType.GetGenericArguments()[0];
+                var genericList = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(elemType));
+                foreach (var item in listVal2)
+                    genericList.Add(MapToType(item, elemType));
+                return genericList;
+            }
+
+            // Dictionaries -> POCO
+            if (value is IDictionary<string, object> gd || value is IDictionary)
+            {
+                var map = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+                if (value is IDictionary<string, object> genericDict)
+                {
+                    foreach (var kv in genericDict)
+                        map[kv.Key] = kv.Value;
+                }
+                else if (value is IDictionary nonGenericDict)
+                {
+                    foreach (DictionaryEntry de in nonGenericDict)
+                    {
+                        var key = de.Key?.ToString();
+                        if (key != null) map[key] = de.Value;
+                    }
+                }
+
+                // If targetType is IDictionary<string,object> just return mapped dictionary
+                if (typeof(IDictionary<string, object>).IsAssignableFrom(targetType))
+                {
+                    return map;
+                }
+
+                // If targetType has a constructor that matches dictionary keys, prefer constructor binding
+                var ctors = targetType.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var ctor in ctors)
+                {
+                    var parameters = ctor.GetParameters();
+                    if (parameters.Length == 0) continue;
+
+                    var args = new object[parameters.Length];
+                    var match = true;
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        var p = parameters[i];
+                        // check XmlRpcName attribute first
+                        var attr = (XmlRpcNameAttribute)p.GetCustomAttribute(typeof(XmlRpcNameAttribute));
+                        var name = attr?.Name ?? p.Name;
+
+                        if (!map.TryGetValue(name, out var v))
+                        {
+                            match = false;
+                            break;
+                        }
+
+                        try
+                        {
+                            args[i] = MapToType(v, p.ParameterType);
+                        }
+                        catch
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+
+                    if (match)
+                    {
+                        return ctor.Invoke(args);
+                    }
+                }
+
+                // Create POCO and set properties
+                var poco = Activator.CreateInstance(targetType);
+                var props = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+                foreach (var prop in props)
+                {
+                    // prefer writable properties or those with a non-public setter
+                    var setMethod = prop.GetSetMethod(true);
+                    if (setMethod == null && !prop.CanWrite)
+                        continue;
+
+                    // determine name via XmlRpcNameAttribute if present, otherwise use property name
+                    var propAttr = (XmlRpcNameAttribute)prop.GetCustomAttribute(typeof(XmlRpcNameAttribute));
+                    var propName = propAttr?.Name ?? prop.Name;
+
+                    if (map.TryGetValue(propName, out var propVal))
+                    {
+                        var converted = MapToType(propVal, prop.PropertyType);
+                        if (setMethod != null)
+                        {
+                            // invoke setter even if non-public
+                            setMethod.Invoke(poco, new[] { converted });
+                        }
+                        else
+                        {
+                            // Try to set an auto-property backing field (compiler generated)
+                            var backing = targetType.GetField("<" + prop.Name + ">k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                            if (backing != null)
+                            {
+                                backing.SetValue(poco, converted);
+                            }
+                        }
+                    }
+                }
+
+                // Also set public and non-public fields directly
+                var fields = targetType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var field in fields)
+                {
+                    var fieldAttr = (XmlRpcNameAttribute)field.GetCustomAttribute(typeof(XmlRpcNameAttribute));
+                    var fieldName = fieldAttr?.Name ?? field.Name;
+                    if (map.TryGetValue(fieldName, out var fVal))
+                    {
+                        var converted = MapToType(fVal, field.FieldType);
+                        field.SetValue(poco, converted);
+                    }
+                }
+
+                return poco;
+            }
+
+            throw new InvalidCastException($"Unable to map value of type {value.GetType()} to target type {targetType}");
+        }
+
+        private static bool IsGenericList(Type t)
+        {
+            if (!t.IsGenericType) return false;
+            var def = t.GetGenericTypeDefinition();
+            return def == typeof(List<>) || def == typeof(IList<>) || def == typeof(IEnumerable<>);
+        }
+#endregion
 
 #if __MONO__
     private DateTime DateParse(String str)
