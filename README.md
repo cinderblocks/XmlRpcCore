@@ -137,5 +137,4 @@ XmlRpcCore is under the BSD license. See: [License](LICENSE.html)
   * Support system object "capabilities" method
   * Improve system object's "methodHelp" support - rip from XML docs somehow.
   * Method overloading based on arguments
-  * More unit tests
   * Tutorial doc
