@@ -39,14 +39,20 @@ namespace XmlRpcCore
         // Node counting to mitigate DoS from extremely large documents
         private long _nodeCount;
 
-        /// <summary>Maximum characters allowed in the XML document. Default 10_000_000 (10MB).</summary>
-        public static long MaxCharactersInDocument { get; set; } = 10_000_000;
+        /// <summary>Maximum characters allowed in the XML document. Default 10000000 (10MB).</summary>
+        public static long MaxCharactersInDocument { get; set; } = 10000000;
 
-        /// <summary>Maximum characters produced by entity expansion. Default 1_000_000.</summary>
-        public static long MaxCharactersFromEntities { get; set; } = 1_000_000;
+        /// <summary>Maximum characters produced by entity expansion. Default 1000000.</summary>
+        public static long MaxCharactersFromEntities { get; set; } = 1000000;
 
         /// <summary>Maximum number of XML nodes to process. Default 100000.</summary>
-        public static int MaxNodeCount { get; set; } = 100_000;
+        public static int MaxNodeCount { get; set; } = 100000;
+
+        /// <summary>Maximum element depth to prevent stack-like attacks. Default 2048.</summary>
+        public static int MaxElementDepth { get; set; } = 2048;
+
+        // Current depth counter
+        private int _depth;
 
         /// <summary>Basic constructor.</summary>
         public XmlRpcDeserializer()
@@ -79,6 +85,11 @@ namespace XmlRpcCore
             switch (reader.NodeType)
             {
                 case XmlNodeType.Element:
+                    // increment depth on element entry
+                    _depth++;
+                    if (_depth > MaxElementDepth)
+                        throw new XmlException($"XML element depth exceeded maximum ({MaxElementDepth}). Potential DoS attack or malformed document.");
+
                     if (Logger.Delegate != null)
                         Logger.WriteEntry($"START {reader.Name}", LogLevel.Information);
                     switch (reader.Name)
@@ -88,13 +99,25 @@ namespace XmlRpcCore
                             _text = null;
                             break;
                         case STRUCT:
-                            if (reader.IsEmptyElement) { break; }
+                            if (reader.IsEmptyElement)
+                            {
+                                // empty struct, nothing to push; decrement depth and break
+                                _container = new Dictionary<string, object>();
+                                _depth--;
+                                break;
+                            }
                             PushContext();
                             // use generic dictionary for structs
                             _container = new Dictionary<string, object>();
                             break;
                         case ARRAY:
-                            if (reader.IsEmptyElement) { break; }
+                            if (reader.IsEmptyElement)
+                            {
+                                // empty array
+                                _container = new List<object>();
+                                _depth--;
+                                break;
+                            }
                             PushContext();
                             // use generic list for arrays
                             _container = new List<object>();
@@ -171,6 +194,10 @@ namespace XmlRpcCore
                             break;
                     }
 
+                    // decrement depth on element exit, ensure not negative
+                    if (_depth > 0)
+                        _depth--;
+
                     break;
                 case XmlNodeType.Text:
                     if (Logger.Delegate != null)
@@ -220,6 +247,7 @@ namespace XmlRpcCore
             _container = null;
             _containerStack = new Stack();
             _nodeCount = 0;
+            _depth = 0;
         }
 
 #if __MONO__
