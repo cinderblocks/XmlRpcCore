@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Collections.Generic;
 
 namespace XmlRpcCore
 {
@@ -46,7 +46,7 @@ namespace XmlRpcCore
                     return 0;
                 }
 
-                return (int) ((Hashtable) _value)[XmlRpcXmlTokens.FAULT_CODE];
+                return (int) ((Dictionary<string, object>) _value)[XmlRpcXmlTokens.FAULT_CODE];
             }
         }
 
@@ -59,7 +59,7 @@ namespace XmlRpcCore
                 {
                     return string.Empty;
                 }
-                return (string) ((Hashtable) _value)[XmlRpcXmlTokens.FAULT_STRING];
+                return (string) ((Dictionary<string, object>) _value)[XmlRpcXmlTokens.FAULT_STRING];
             }
         }
 
@@ -68,7 +68,7 @@ namespace XmlRpcCore
         /// <param name="message"><c>String</c> the faultString value.</param>
         public void SetFault(int code, string message)
         {
-            var fault = new Hashtable
+            var fault = new Dictionary<string, object>
             {
                 { "faultCode", code },
                 { "faultString", message }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 
 namespace XmlRpcCore
 {
@@ -11,24 +12,46 @@ namespace XmlRpcCore
     /// <seealso cref="XmlRpcRequest" />
     public class XmlRpcBoxcarRequest : XmlRpcRequest
     {
-        /// <summary>ArrayList to collect the requests to boxcar.</summary>
-        public readonly IList Requests = new ArrayList();
+        /// <summary>List to collect the requests to boxcar.</summary>
+        public readonly IList<XmlRpcRequest> Requests = new List<XmlRpcRequest>();
 
         /// <summary>Returns the <c>String</c> "system.multiCall" which is the server method that handles boxcars.</summary>
         public override string MethodName => "system.multiCall";
 
-        /// <summary>The <c>ArrayList</c> of boxcarred <paramref>Requests</paramref> as properly formed parameters.</summary>
+        /// <summary>The non-generic IList of boxcarred <paramref>Requests</paramref> as properly formed parameters.</summary>
+        [System.Obsolete("Use ParamsGeneric for a generic collection. This non-generic property is preserved for backward compatibility.", false)]
         public override IList Params
         {
             get
             {
-                var reqArray = new ArrayList();
+                var reqArray = new List<object>();
                 foreach (XmlRpcRequest request in Requests)
                 {
-                    var requestEntry = new Hashtable
+                    var requestEntry = new Dictionary<string, object>
                     {
                         { XmlRpcXmlTokens.METHOD_NAME, request.MethodName },
                         { XmlRpcXmlTokens.PARAMS, request.Params }
+                    };
+                    reqArray.Add(requestEntry);
+                }
+
+                // return a non-generic ArrayList for backward compatibility
+                return new ArrayList(reqArray);
+            }
+        }
+
+        /// <summary>Generic view of Params to aid migration to generics.</summary>
+        public override IList<object> ParamsGeneric
+        {
+            get
+            {
+                var reqArray = new List<object>();
+                foreach (XmlRpcRequest request in Requests)
+                {
+                    var requestEntry = new Dictionary<string, object>
+                    {
+                        { XmlRpcXmlTokens.METHOD_NAME, request.MethodName },
+                        { XmlRpcXmlTokens.PARAMS, request.ParamsGeneric }
                     };
                     reqArray.Add(requestEntry);
                 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Xml;
@@ -73,12 +74,14 @@ namespace XmlRpcCore
                         case STRUCT:
                             if (reader.IsEmptyElement) { break; }
                             PushContext();
-                            _container = new Hashtable();
+                            // use generic dictionary for structs
+                            _container = new Dictionary<string, object>();
                             break;
                         case ARRAY:
                             if (reader.IsEmptyElement) { break; }
                             PushContext();
-                            _container = new ArrayList();
+                            // use generic list for arrays
+                            _container = new List<object>();
                             break;
                     }
 
@@ -111,6 +114,8 @@ namespace XmlRpcCore
 #if __MONO__
 				_value = DateParse(_text);
 #else
+                            // Use the ISO_DATETIME format and invariant culture so serialization and deserialization
+                            // round-trip reliably across cultures.
                             _value = DateTime.ParseExact(_text, ISO_DATETIME, CultureInfo.InvariantCulture, DateTimeStyles.None);
 #endif
                             break;
@@ -121,16 +126,27 @@ namespace XmlRpcCore
                             if (_value == null)
                                 _value = _text; // some kits don't use <string> tag, they just do <value>
 
-                            if (_container is IList list)// in an array?  If so add value to it.
+                            // If inside an array, add the value to it.
+                            if (_container is IList list)
                             {
                                 list.Add(_value);
+                            }
+                            else if (_container is IList<object> genericList)
+                            {
+                                genericList.Add(_value);
                             }
 
                             break;
                         case MEMBER:
+                            // If inside a struct, add the name/value pair.
                             if (_container is IDictionary dictionary)
-                                // in an struct?  If so add value to it.
+                            {
                                 dictionary.Add(_name, _value);
+                            }
+                            else if (_container is IDictionary<string, object> genericDict)
+                            {
+                                genericDict.Add(_name, _value);
+                            }
                             break;
                         case ARRAY:
                         case STRUCT:

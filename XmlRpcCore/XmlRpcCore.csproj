@@ -9,9 +9,9 @@
     <FileAlignment>512</FileAlignment>
     <Authors>cinderblocks</Authors>
     <Company>Sjofn LLC</Company>
-    <Version>3.1.3.0</Version>
+    <Version>3.2.0.0</Version>
     <Description>A small extremely simple to use XmlRcp library</Description>
-    <Copyright>Copyright 2003 Nicholas Christopher, Copyright 2016-2024 Sjofn LLC. All Rights Reserved.</Copyright>
+    <Copyright>Copyright 2003 Nicholas Christopher, Copyright 2016-2025 Sjofn LLC. All Rights Reserved.</Copyright>
     <PackageTags>xmlrpc,networking</PackageTags>
 	<PackageProjectUrl>https://github.com/cinderblocks/XmlRpcCore</PackageProjectUrl>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>

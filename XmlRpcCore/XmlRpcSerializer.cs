@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -71,11 +72,27 @@ namespace XmlRpcCore
                 case bool b:
                     output.WriteElementString(BOOLEAN, b ? "1" : "0");
                     break;
+                case IList<object> genericList:
+                {
+                    output.WriteStartElement(ARRAY);
+                    output.WriteStartElement(DATA);
+                    if (genericList.Count > 0)
+                        foreach (var member in genericList)
+                        {
+                            output.WriteStartElement(VALUE);
+                            SerializeObject(output, member);
+                            output.WriteEndElement();
+                        }
+
+                    output.WriteEndElement();
+                    output.WriteEndElement();
+                    break;
+                }
                 case IList list:
                 {
                     output.WriteStartElement(ARRAY);
                     output.WriteStartElement(DATA);
-                    if (((ArrayList) list).Count > 0)
+                    if (list.Count > 0)
                         foreach (var member in list)
                         {
                             output.WriteStartElement(VALUE);
@@ -84,6 +101,22 @@ namespace XmlRpcCore
                         }
 
                     output.WriteEndElement();
+                    output.WriteEndElement();
+                    break;
+                }
+                case IDictionary<string, object> genericDict:
+                {
+                    output.WriteStartElement(STRUCT);
+                    foreach (var kv in genericDict)
+                    {
+                        output.WriteStartElement(MEMBER);
+                        output.WriteElementString(NAME, kv.Key);
+                        output.WriteStartElement(VALUE);
+                        SerializeObject(output, kv.Value);
+                        output.WriteEndElement();
+                        output.WriteEndElement();
+                    }
+
                     output.WriteEndElement();
                     break;
                 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -17,6 +19,7 @@ namespace XmlRpcCore
         /// <summary>Instantiate an <c>XmlRpcRequest</c></summary>
         public XmlRpcRequest()
         {
+            // maintain legacy non-generic collection for backward compatibility
             Params = new ArrayList();
         }
 
@@ -25,15 +28,29 @@ namespace XmlRpcCore
         ///     <c>String</c> designating the <i>object.method</i> on the server the request
         ///     should be directed to.
         /// </param>
-        /// <param name="parameters"><c>ArrayList</c> of XML-RPC type parameters to invoke the request with.</param>
+        /// <param name="parameters"><c>IList</c> of XML-RPC type parameters to invoke the request with.</param>
         public XmlRpcRequest(string methodName, IList parameters)
         {
             _methodName = methodName;
             Params = parameters;
         }
 
-        /// <summary><c>ArrayList</c> containing the parameters for the request.</summary>
+        /// <summary><c>IList</c> containing the parameters for the request.</summary>
+        [Obsolete("Use ParamsGeneric for generic collections. This non-generic property will be removed in a future release.", false)]
         public virtual IList Params { get; }
+
+        /// <summary>Generic view of the params property to aid migration to generics.</summary>
+        public virtual IList<object> ParamsGeneric
+        {
+            get
+            {
+                if (Params is IList<object> generic)
+                    return generic;
+
+                // create a typed snapshot of the current non-generic params
+                return Params?.Cast<object>().ToList() ?? new List<object>();
+            }
+        }
 
         /// <summary><c>String</c> containing the method name, both object and method, that the request will be sent to.</summary>
         public virtual string MethodName
