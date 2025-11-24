@@ -36,6 +36,17 @@ namespace XmlRpcCore
         /// <summary>Protected reference to last name field.</summary>
         protected string _name;
 
+        // Node counting to mitigate DoS from extremely large documents
+        private long _nodeCount;
+
+        /// <summary>Maximum characters allowed in the XML document. Default 10_000_000 (10MB).</summary>
+        public static long MaxCharactersInDocument { get; set; } = 10_000_000;
+
+        /// <summary>Maximum characters produced by entity expansion. Default 1_000_000.</summary>
+        public static long MaxCharactersFromEntities { get; set; } = 1_000_000;
+
+        /// <summary>Maximum number of XML nodes to process. Default 100000.</summary>
+        public static int MaxNodeCount { get; set; } = 100_000;
 
         /// <summary>Basic constructor.</summary>
         public XmlRpcDeserializer()
@@ -60,6 +71,11 @@ namespace XmlRpcCore
         /// <param name="reader"><c>XmlTextReader</c> of the in progress parsing data stream.</param>
         protected void DeserializeNode(XmlReader reader)
         {
+            // simple node count guard to avoid extremely large documents
+            _nodeCount++;
+            if (_nodeCount > MaxNodeCount)
+                throw new XmlException($"XML document contains too many nodes (>{MaxNodeCount}). Potential DoS attack or malformed document.");
+
             switch (reader.NodeType)
             {
                 case XmlNodeType.Element:
@@ -203,6 +219,7 @@ namespace XmlRpcCore
             _name = null;
             _container = null;
             _containerStack = new Stack();
+            _nodeCount = 0;
         }
 
 #if __MONO__
