@@ -110,6 +110,45 @@ The default `ObjectMapper` uses `System.Text.Json` internally to map dictionary-
 - Enums are mapped from strings when possible (default `JsonStringEnumConverter` behavior).
 - If you need tighter control or better performance for hot paths, consider implementing a reflection-based `IObjectMapper` and registering it in DI.
 
+POCO mapping example
+--------------------
+
+Below is a minimal example that demonstrates mapping a dictionary-shaped XML-RPC value to a POCO and back using the default `ObjectMapper`:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using XmlRpcCore;
+
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public DateTime Joined { get; set; }
+}
+
+// Mapping a dictionary to a POCO
+var dict = new Dictionary<string, object>
+{
+    ["Name"] = "Alice",
+    ["Age"] = 30,
+    ["Joined"] = "2020-12-31T23:59:59Z" // JSON date string will be converted to DateTime
+};
+
+var mapper = new ObjectMapper();
+Person p = mapper.MapTo<Person>(dict);
+Console.WriteLine($"Name={p.Name}, Age={p.Age}, Joined={p.Joined:o}");
+
+// Mapping a POCO back to a dictionary (useful for sending structs)
+var payload = (Dictionary<string, object>)mapper.MapFrom(p);
+Console.WriteLine(payload["Name"]);
+```
+
+Notes:
+- The mapper will attempt to convert JSON strings to `DateTime` where possible.
+- Numeric values may come back as `int` or `long` depending on magnitude; code consuming raw dictionaries should handle both.
+- Enums are supported when the JSON contains the enum name (e.g. `"GreenBlue"`).
+
 Security / XXE and hardening defaults
 ------------------------------------
 
