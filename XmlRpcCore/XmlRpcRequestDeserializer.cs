@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Xml;
 
@@ -7,53 +7,56 @@ namespace XmlRpcCore
     /// <summary>Class to deserialize XML data representing a request.</summary>
     public class XmlRpcRequestDeserializer : XmlRpcDeserializer
     {
-        private static XmlRpcRequestDeserializer _singleton;
-
-        /// <summary>A static singleton instance of this deserializer.</summary>
-        [Obsolete("This object is now thread safe, just use an instance.", false)]
-        public static XmlRpcRequestDeserializer Singleton =>
-            _singleton ?? (_singleton = new XmlRpcRequestDeserializer());
-
-        /// <summary>Static method that parses XML data into a request using the Singleton.</summary>
-        /// <param name="xmlData"><c>StreamReader</c> containing an XML-RPC request.</param>
-        /// <returns><c>XmlRpcRequest</c> object resulting from the parse.</returns>
+        /// <summary>Parses XML data into a request.</summary>
         public override object Deserialize(TextReader xmlData)
         {
-            var reader = XmlReader.Create(xmlData);
-            var request = new XmlRpcRequest();
-            var done = false;
-
-            lock (this)
+            try
             {
-                Reset();
-                while (!done && reader.Read())
+                using (var reader = XmlReader.Create(xmlData, XmlRpcSettings.CreateReaderSettings()))
                 {
-                    DeserializeNode(reader); // Parent parse...
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.EndElement:
-                        {
-                            switch (reader.Name)
-                            {
-                                case METHOD_NAME:
-                                    request.MethodName = _text;
-                                    break;
-                                case METHOD_CALL:
-                                    done = true;
-                                    break;
-                                case PARAM:
-                                    request.Params.Add(_value);
-                                    _text = null;
-                                    break;
-                            }
+                    var request = new XmlRpcRequest();
+                    var done = false;
 
-                            break;
+                    lock (_syncRoot)
+                    {
+                        Reset();
+                        while (!done && reader.Read())
+                        {
+                            if (reader.Depth > XmlRpcSettingsManager.Options.MaxDepth)
+                                throw new XmlRpcProtocolException($"XML depth exceeded maximum of {XmlRpcSettingsManager.Options.MaxDepth}");
+
+                            DeserializeNode(reader);
+
+                            if (reader.NodeType == XmlNodeType.EndElement)
+                            {
+                                switch (reader.Name)
+                                {
+                                    case METHOD_NAME:
+                                        request.MethodName = _text;
+                                        break;
+                                    case METHOD_CALL:
+                                        done = true;
+                                        break;
+                                    case PARAM:
+                                        request.Params.Add(_value);
+                                        _text = null;
+                                        break;
+                                }
+                            }
                         }
                     }
+
+                    return request;
                 }
             }
-
-            return request;
+            catch (XmlException xex)
+            {
+                throw new XmlRpcProtocolException("Failed to parse XML-RPC request", null, xex);
+            }
+            catch (Exception ex)
+            {
+                throw new XmlRpcTransportException("Failed to deserialize XML-RPC request", ex);
+            }
         }
     }
 }

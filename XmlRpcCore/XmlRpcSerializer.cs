@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -71,31 +71,30 @@ namespace XmlRpcCore
                 case bool b:
                     output.WriteElementString(BOOLEAN, b ? "1" : "0");
                     break;
-                case IList list:
+                case IList<object> list:
                 {
                     output.WriteStartElement(ARRAY);
                     output.WriteStartElement(DATA);
-                    if (((ArrayList) list).Count > 0)
-                        foreach (var member in list)
-                        {
-                            output.WriteStartElement(VALUE);
-                            SerializeObject(output, member);
-                            output.WriteEndElement();
-                        }
+                    foreach (var member in list)
+                    {
+                        output.WriteStartElement(VALUE);
+                        SerializeObject(output, member);
+                        output.WriteEndElement();
+                    }
 
                     output.WriteEndElement();
                     output.WriteEndElement();
                     break;
                 }
-                case IDictionary dictionary:
+                case IDictionary<string, object> dictionary:
                 {
                     output.WriteStartElement(STRUCT);
-                    foreach (string key in dictionary.Keys)
+                    foreach (var kvp in dictionary)
                     {
                         output.WriteStartElement(MEMBER);
-                        output.WriteElementString(NAME, key);
+                        output.WriteElementString(NAME, kvp.Key);
                         output.WriteStartElement(VALUE);
-                        SerializeObject(output, dictionary[key]);
+                        SerializeObject(output, kvp.Value);
                         output.WriteEndElement();
                         output.WriteEndElement();
                     }
@@ -103,6 +102,10 @@ namespace XmlRpcCore
                     output.WriteEndElement();
                     break;
                 }
+                default:
+                    // Strict modern codebase: only support known modern types. Fall back to string for other CLR types.
+                    output.WriteElementString(STRING, obj.ToString());
+                    break;
             }
         }
     }

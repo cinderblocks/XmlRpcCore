@@ -1,70 +1,46 @@
-﻿using System;
-using System.IO;
+﻿// Copyright (c) 2003 Nicholas Christopher; 2016-2025 Sjofn LLC.
+// Licensed under the BSD-3-Clause License. See LICENSE in the repository root for details.
+
+using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace XmlRpcCore
 {
     public static class XmlRpcHttpClientExtensions
     {
-        private static readonly XmlRpcResponseDeserializer Deserializer = new XmlRpcResponseDeserializer();
-        private static readonly XmlRpcRequestSerializer Serializer = new XmlRpcRequestSerializer();
-
-        /// <summary>Send a XmlRpcRequest to the server.</summary>
-        /// <param name="client"><c>HttpClient</c> HttpClient used to submit the request</param>
-        /// <param name="requestUri"><c>String</c> The uri of the XML-RPC server.</param>
-        /// <param name="rpcRequest"><c>XmlRpcRequest</c> The rpc request object to send</param>
-        /// <param name="cancellationToken">
-        ///     <c>CancellationToken</c>
-        /// </param>
-        /// <returns><c>XmlRpcResponse</c> The response generated.</returns>
+        /// <summary>Send a XmlRpcRequest to the server using the provided serializer.</summary>
         public static Task<XmlRpcResponse> PostAsXmlRpcAsync(this HttpClient client, string requestUri,
-            XmlRpcRequest rpcRequest, CancellationToken cancellationToken = default)
+            XmlRpcRequest rpcRequest, IXmlRpcSerializer serializer = null, CancellationToken cancellationToken = default)
         {
-            return PostAsXmlRpcAsync(client, new Uri(requestUri), rpcRequest, cancellationToken);
+            return PostAsXmlRpcAsync(client, new Uri(requestUri), rpcRequest, serializer, cancellationToken);
         }
 
-        /// <summary>Send a XmlRpcRequest to the server.</summary>
-        /// <param name="client"><c>HttpClient</c> HttpClient used to submit the request</param>
-        /// <param name="requestUri"><c>Uri</c> The uri of the XML-RPC server.</param>
-        /// <param name="rpcRequest"><c>XmlRpcRequest</c> The rpc request object to send</param>
-        /// <param name="cancellationToken">
-        ///     <c>CancellationToken</c>
-        /// </param>
-        /// <returns><c>XmlRpcResponse</c> The response generated.</returns>
         public static async Task<XmlRpcResponse> PostAsXmlRpcAsync(this HttpClient client, Uri requestUri,
-            XmlRpcRequest rpcRequest, CancellationToken cancellationToken = default)
+            XmlRpcRequest rpcRequest, IXmlRpcSerializer serializer = null, CancellationToken cancellationToken = default)
         {
-            using (var stream = new MemoryStream())
+            IXmlRpcSerializer ser = serializer ?? new XmlRpcNetSerializer();
+
+            using (var content = new XmlRpcStreamContent(rpcRequest, ser))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content })
+            using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
             {
-                using (var writer = XmlWriter.Create(stream,
-                    new XmlWriterSettings {Encoding = Encoding.ASCII, Indent = true}))
+                response.EnsureSuccessStatusCode();
+                using (var stream = await response.Content.ReadAsStreamAsync())
                 {
-                    Serializer.Serialize(writer, rpcRequest);
-                }
+                    var resp = await ser.DeserializeResponseAsync(stream, cancellationToken).ConfigureAwait(false);
+                    if (resp == null)
+                        return null;
 
-                // reset position
-                stream.Position = 0;
+                    if (resp.IsFault)
+                    {
+                        return new XmlRpcResponse { IsFault = true, FaultCode = resp.FaultCode, FaultString = resp.FaultString };
+                    }
 
-                var request = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = requestUri,
-                    Content = new StreamContent(stream)
-                };
-                request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
-
-                var response = await client.SendAsync(request, cancellationToken)
-                    .ConfigureAwait(false);
-
-                var contentStream = await response.Content.ReadAsStreamAsync();
-                using (var streamReader = new StreamReader(contentStream))
-                {
-                    return (XmlRpcResponse) Deserializer.Deserialize(streamReader);
+                    var core = new XmlRpcResponse();
+                    core.Value = resp.Value;
+                    return core;
                 }
             }
         }

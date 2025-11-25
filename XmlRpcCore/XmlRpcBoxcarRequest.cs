@@ -1,4 +1,7 @@
-using System.Collections;
+// Copyright (c) 2003 Nicholas Christopher; 2016-2025 Sjofn LLC.
+// Licensed under the BSD-3-Clause License. See LICENSE in the repository root for details.
+
+using System.Collections.Generic;
 
 namespace XmlRpcCore
 {
@@ -11,29 +14,29 @@ namespace XmlRpcCore
     /// <seealso cref="XmlRpcRequest" />
     public class XmlRpcBoxcarRequest : XmlRpcRequest
     {
-        /// <summary>ArrayList to collect the requests to boxcar.</summary>
-        public readonly IList Requests = new ArrayList();
+        /// <summary>List to collect the requests to boxcar.</summary>
+        public readonly IList<XmlRpcRequest> Requests = new List<XmlRpcRequest>();
 
         /// <summary>Returns the <c>String</c> "system.multiCall" which is the server method that handles boxcars.</summary>
         public override string MethodName => "system.multiCall";
 
-        /// <summary>The <c>ArrayList</c> of boxcarred <paramref>Requests</paramref> as properly formed parameters.</summary>
-        public override IList Params
+        /// <summary>The list of boxcarred <paramref>Requests</paramref> as properly formed parameters.</summary>
+        public override IList<object> Params
         {
             get
             {
-                var reqArray = new ArrayList();
+                var reqList = new List<object>();
                 foreach (XmlRpcRequest request in Requests)
                 {
-                    var requestEntry = new Hashtable
+                    var requestEntry = new Dictionary<string, object>
                     {
                         { XmlRpcXmlTokens.METHOD_NAME, request.MethodName },
                         { XmlRpcXmlTokens.PARAMS, request.Params }
                     };
-                    reqArray.Add(requestEntry);
+                    reqList.Add(requestEntry);
                 }
 
-                return reqArray;
+                return reqList;
             }
         }
     }

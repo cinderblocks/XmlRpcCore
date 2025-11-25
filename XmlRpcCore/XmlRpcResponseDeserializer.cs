@@ -7,50 +7,55 @@ namespace XmlRpcCore
     /// <summary>Class to deserialize XML data representing a response.</summary>
     public class XmlRpcResponseDeserializer : XmlRpcDeserializer
     {
-        private static XmlRpcResponseDeserializer _singleton;
-
-        /// <summary>A static singleton instance of this deserializer.</summary>
-        [Obsolete("This object is now thread safe, just use an instance.", false)]
-        public static XmlRpcResponseDeserializer Singleton =>
-            _singleton ?? (_singleton = new XmlRpcResponseDeserializer());
-
-        /// <summary>Static method that parses XML data into a response using the Singleton.</summary>
-        /// <param name="xmlData"><c>StreamReader</c> containing an XML-RPC response.</param>
-        /// <returns><c>XmlRpcResponse</c> object resulting from the parse.</returns>
+        /// <summary>Parses XML data into a response.</summary>
         public override object Deserialize(TextReader xmlData)
         {
-            var reader = XmlReader.Create(xmlData);
-            var response = new XmlRpcResponse();
-
-            lock (this)
+            try
             {
-                Reset();
-
-                while (reader.Read())
+                using (var reader = XmlReader.Create(xmlData, XmlRpcSettings.CreateReaderSettings()))
                 {
-                    DeserializeNode(reader); // Parent parse...
-                    switch (reader.NodeType)
-                    {
-                        case XmlNodeType.EndElement:
-                            switch (reader.Name)
-                            {
-                                case FAULT:
-                                    response.Value = _value;
-                                    response.IsFault = true;
-                                    break;
-                                case PARAM:
-                                    response.Value = _value;
-                                    _value = null;
-                                    _text = null;
-                                    break;
-                            }
+                    var response = new XmlRpcResponse();
 
-                            break;
+                    lock (_syncRoot)
+                    {
+                        Reset();
+
+                        while (reader.Read())
+                        {
+                            if (reader.Depth > XmlRpcSettingsManager.Options.MaxDepth)
+                                throw new XmlRpcProtocolException($"XML depth exceeded maximum of {XmlRpcSettingsManager.Options.MaxDepth}");
+
+                            DeserializeNode(reader);
+
+                            if (reader.NodeType == XmlNodeType.EndElement)
+                            {
+                                switch (reader.Name)
+                                {
+                                    case FAULT:
+                                        response.Value = _value;
+                                        response.IsFault = true;
+                                        break;
+                                    case PARAM:
+                                        response.Value = _value;
+                                        _value = null;
+                                        _text = null;
+                                        break;
+                                }
+                            }
+                        }
                     }
+
+                    return response;
                 }
             }
-
-            return response;
+            catch (XmlException xex)
+            {
+                throw new XmlRpcProtocolException("Failed to parse XML-RPC response", null, xex);
+            }
+            catch (Exception ex)
+            {
+                throw new XmlRpcTransportException("Failed to deserialize XML-RPC response", ex);
+            }
         }
     }
 }

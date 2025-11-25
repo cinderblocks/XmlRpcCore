@@ -1,5 +1,8 @@
+// Copyright (c) 2003 Nicholas Christopher; 2016-2025 Sjofn LLC.
+// Licensed under the BSD-3-Clause License. See LICENSE in the repository root for details.
+
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Xml;
@@ -24,7 +27,9 @@ namespace XmlRpcCore
         private static readonly DateTimeFormatInfo _dateFormat = new DateTimeFormatInfo();
 
         private object _container;
-        private Stack _containerStack;
+        private Stack<Context> _containerStack;
+
+        protected readonly object _syncRoot = new object();
 
         /// <summary>Protected reference to last text.</summary>
         protected string _text;
@@ -62,8 +67,6 @@ namespace XmlRpcCore
             switch (reader.NodeType)
             {
                 case XmlNodeType.Element:
-                    if (Logger.Delegate != null)
-                        Logger.WriteEntry($"START {reader.Name}", LogLevel.Information);
                     switch (reader.Name)
                     {
                         case VALUE:
@@ -73,19 +76,19 @@ namespace XmlRpcCore
                         case STRUCT:
                             if (reader.IsEmptyElement) { break; }
                             PushContext();
-                            _container = new Hashtable();
+                            // use generic dictionary as container
+                            _container = new Dictionary<string, object>();
                             break;
                         case ARRAY:
                             if (reader.IsEmptyElement) { break; }
                             PushContext();
-                            _container = new ArrayList();
+                            // use generic list as container
+                            _container = new List<object>();
                             break;
                     }
 
                     break;
                 case XmlNodeType.EndElement:
-                    if (Logger.Delegate != null)
-                        Logger.WriteEntry($"END {reader.Name}", LogLevel.Information);
                     switch (reader.Name)
                     {
                         case BASE64:
@@ -121,16 +124,15 @@ namespace XmlRpcCore
                             if (_value == null)
                                 _value = _text; // some kits don't use <string> tag, they just do <value>
 
-                            if (_container is IList list)// in an array?  If so add value to it.
+                            if (_container is List<object> genList)
                             {
-                                list.Add(_value);
+                                genList.Add(_value);
                             }
 
                             break;
                         case MEMBER:
-                            if (_container is IDictionary dictionary)
-                                // in an struct?  If so add value to it.
-                                dictionary.Add(_name, _value);
+                            if (_container is Dictionary<string, object> genDict)
+                                genDict[_name] = _value;
                             break;
                         case ARRAY:
                         case STRUCT:
@@ -141,8 +143,6 @@ namespace XmlRpcCore
 
                     break;
                 case XmlNodeType.Text:
-                    if (Logger.Delegate != null)
-                        Logger.WriteEntry($"Text {reader.Value}", LogLevel.Information);
                     _text = reader.Value;
                     break;
             }
@@ -163,7 +163,7 @@ namespace XmlRpcCore
         /// <summary>Pop a Context of the stack, an Array or Struct has closed.</summary>
         private void PopContext()
         {
-            var c = (Context) _containerStack.Pop();
+            var c = _containerStack.Pop();
             _container = c.Container;
             _name = c.Name;
         }
@@ -186,7 +186,7 @@ namespace XmlRpcCore
             _value = null;
             _name = null;
             _container = null;
-            _containerStack = new Stack();
+            _containerStack = new Stack<Context>();
         }
 
 #if __MONO__

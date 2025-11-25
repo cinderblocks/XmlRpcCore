@@ -1,15 +1,22 @@
+// Copyright (c) 2003 Nicholas Christopher; 2016-2025 Sjofn LLC.
+// Licensed under the BSD-3-Clause License. See LICENSE in the repository root for details.
+
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace XmlRpcCore
 {
     /// <summary>Class supporting the request side of an XML-RPC transaction.</summary>
     public class XmlRpcRequest
     {
-        private readonly Lazy<XmlRpcRequestSerializer> _serializer =
-            new Lazy<XmlRpcRequestSerializer>(() => new XmlRpcRequestSerializer());
+        private readonly IXmlRpcSerializer _injectedSerializer;
+        private readonly ILogger _logger;
 
         // XXX: workaround virtual method call in constructor
         private string _methodName = "";
@@ -17,23 +24,43 @@ namespace XmlRpcCore
         /// <summary>Instantiate an <c>XmlRpcRequest</c></summary>
         public XmlRpcRequest()
         {
-            Params = new ArrayList();
+            Params = new List<object>();
         }
 
         /// <summary>Instantiate an <c>XmlRpcRequest</c> for a specified method and parameters.</summary>
-        /// <param name="methodName">
-        ///     <c>String</c> designating the <i>object.method</i> on the server the request
-        ///     should be directed to.
-        /// </param>
-        /// <param name="parameters"><c>ArrayList</c> of XML-RPC type parameters to invoke the request with.</param>
-        public XmlRpcRequest(string methodName, IList parameters)
+        public XmlRpcRequest(string methodName, IEnumerable<object> parameters)
         {
             _methodName = methodName;
-            Params = parameters;
+            Params = parameters == null ? new List<object>() : new List<object>(parameters);
         }
 
-        /// <summary><c>ArrayList</c> containing the parameters for the request.</summary>
-        public virtual IList Params { get; }
+        /// <summary>Legacy constructor accepting non-generic ArrayList for migration. Use generic overload instead.</summary>
+        [Obsolete("Use XmlRpcRequest(string, IEnumerable<object>) with a generic list instead.")]
+        public XmlRpcRequest(string methodName, ArrayList parameters)
+        {
+            _methodName = methodName;
+            if (parameters == null)
+            {
+                Params = new List<object>();
+            }
+            else
+            {
+                var list = new List<object>(parameters.Count);
+                foreach (var o in parameters)
+                    list.Add(o);
+                Params = list;
+            }
+        }
+
+        /// <summary>Construct with injected serializer and logger for DI scenarios.</summary>
+        public XmlRpcRequest(string methodName, IEnumerable<object> parameters, IXmlRpcSerializer serializer, ILogger logger = null) : this(methodName, parameters)
+        {
+            _injectedSerializer = serializer;
+            _logger = logger;
+        }
+
+        /// <summary><c>IList&lt;object&gt;</c> containing the parameters for the request.</summary>
+        public virtual IList<object> Params { get; }
 
         /// <summary><c>String</c> containing the method name, both object and method, that the request will be sent to.</summary>
         public virtual string MethodName
@@ -67,10 +94,6 @@ namespace XmlRpcCore
         }
 
         /// <summary>Invoke this request on the server.</summary>
-        /// <param name="client"><c>HttpClient</c> HttpClient object to use for the request.</param>
-        /// <param name="url"><c>String</c> The url of the XML-RPC server.</param>
-        /// <returns><c>Object</c> The value returned from the method invocation on the server.</returns>
-        /// <exception cref="XmlRpcException">If an exception generated on the server side.</exception>
         public async Task<object> Invoke(HttpClient client, string url)
         {
             var res = await client.PostAsXmlRpcAsync(url, this);
@@ -83,11 +106,43 @@ namespace XmlRpcCore
             return res.Value;
         }
 
-        /// <summary>Produce <c>String</c> representation of the object.</summary>
-        /// <returns><c>String</c> representation of the object.</returns>
+        /// <summary>Invoke async with cancellation and serializer injection.</summary>
+        public async Task<object> InvokeAsync(HttpClient client, string url, IXmlRpcSerializer serializer = null, CancellationToken cancellationToken = default)
+        {
+            IXmlRpcSerializer ser = (serializer ?? _injectedSerializer) ?? new XmlRpcNetSerializer();
+            if (_logger != null)
+                _logger.LogDebug("Invoking XmlRpc method {Method}", MethodName);
+
+            var res = await client.PostAsXmlRpcAsync(url, this, ser, cancellationToken).ConfigureAwait(false);
+
+            if (res.IsFault)
+            {
+                if (_logger != null)
+                    _logger.LogWarning("XmlRpc fault {FaultCode}: {FaultString}", res.FaultCode, res.FaultString);
+                throw new XmlRpcException(res.FaultCode, res.FaultString);
+            }
+
+            return res.Value;
+        }
+
+        /// <summary>Generic Invoke that attempts to convert the returned value to T.</summary>
+        public async Task<T> InvokeAsync<T>(HttpClient client, string url, IXmlRpcSerializer serializer = null, CancellationToken cancellationToken = default)
+        {
+            var result = await InvokeAsync(client, url, serializer, cancellationToken).ConfigureAwait(false);
+            if (result == null) return default(T);
+            return (T)Convert.ChangeType(result, typeof(T));
+        }
+
+        /// <summary>Produce <c>String</c> representation of the object using a serializer.</summary>
+        public string ToString(IXmlRpcSerializer serializer)
+        {
+            var ser = serializer ?? _injectedSerializer ?? new XmlRpcNetSerializer();
+            return ser.SerializeRequest(this);
+        }
+
         public override string ToString()
         {
-            return _serializer.Value.Serialize(this);
+            return ToString(new XmlRpcNetSerializer());
         }
     }
 }

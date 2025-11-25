@@ -1,9 +1,7 @@
 using NUnit.Framework;
 using System;
-using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 using System.Text;
-using System.Xml;
 
 namespace XmlRpcCore.Tests
 {
@@ -13,7 +11,7 @@ namespace XmlRpcCore.Tests
         [Test]
         public void Serialize_ToString_IncludesMethodName()
         {
-            var req = new XmlRpcCore.XmlRpcRequest("demo.sayHello", new ArrayList { "World" });
+            var req = new XmlRpcCore.XmlRpcRequest("demo.sayHello", new List<object> { "World" });
             var xml = req.ToString();
             Assert.That(xml, Does.Contain("<methodName>demo.sayHello</methodName>"));
         }
@@ -21,7 +19,7 @@ namespace XmlRpcCore.Tests
         [Test]
         public void MethodNameObjectAndMethod_AreSplitCorrectly_WithDot()
         {
-            var req = new XmlRpcCore.XmlRpcRequest("obj.method", new ArrayList());
+            var req = new XmlRpcCore.XmlRpcRequest("obj.method", new List<object>());
             Assert.That(req.MethodNameObject, Is.EqualTo("obj"));
             Assert.That(req.MethodNameMethod, Is.EqualTo("method"));
         }
@@ -29,7 +27,7 @@ namespace XmlRpcCore.Tests
         [Test]
         public void MethodNameObjectAndMethod_AreWholeWhenNoDot()
         {
-            var req = new XmlRpcCore.XmlRpcRequest("single", new ArrayList());
+            var req = new XmlRpcCore.XmlRpcRequest("single", new List<object>());
             Assert.That(req.MethodNameObject, Is.EqualTo("single"));
             Assert.That(req.MethodNameMethod, Is.EqualTo("single"));
         }
@@ -38,7 +36,7 @@ namespace XmlRpcCore.Tests
         public void Invoke_ThrowsOnFaultResponse()
         {
             // simulate an HttpClient that returns a fault response
-            var handler = new TestHttpMessageHandler((req) =>
+            var handler = new TestHttpMessageHandler((requestMsg) =>
             {
                 var responseXml = "<?xml version=\"1.0\"?><methodResponse><fault><value><struct><member><name>faultCode</name><value><i4>4</i4></value></member><member><name>faultString</name><value><string>Too many params.</string></value></member></struct></value></fault></methodResponse>";
                 return new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK)
@@ -48,7 +46,7 @@ namespace XmlRpcCore.Tests
             });
 
             var client = new System.Net.Http.HttpClient(handler);
-            var req = new XmlRpcCore.XmlRpcRequest("demo", new ArrayList());
+            var req = new XmlRpcCore.XmlRpcRequest("demo", new List<object>());
 
             Assert.ThrowsAsync<XmlRpcCore.XmlRpcException>(async () => await req.Invoke(client, "http://localhost"));
         }
@@ -70,7 +68,7 @@ namespace XmlRpcCore.Tests
             });
 
             var client = new System.Net.Http.HttpClient(handler);
-            var req = new XmlRpcCore.XmlRpcRequest("demo", new ArrayList());
+            var req = new XmlRpcCore.XmlRpcRequest("demo", new List<object>());
 
             var task = XmlRpcCore.XmlRpcHttpClientExtensions.PostAsXmlRpcAsync(client, "http://localhost", req);
             task.Wait();
